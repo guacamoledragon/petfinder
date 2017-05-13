@@ -4,17 +4,20 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [twilio-webhook.handler :refer [app-routes]]))
 
-(defonce server (atom nil))
+(def server nil)
 
 (defn start []
-  (let [app (wrap-reload #'app-routes)]
-    (reset! server (http/run-server app {:port 3000}))
-    (println (str "Listening on port " 3000 "!"))))
+  (let [app (wrap-reload #'app-routes)
+        port 3000]
+    (alter-var-root #'server
+                    (constantly (http/run-server app {:port port})))
+    (println (str "Listening on port " port "!"))))
 
 (defn stop []
-  (when @server
-    (@server :timeout 100)
-    (reset! server nil)))
+  (alter-var-root #'server
+                  (fn [s]
+                    (when s
+                      (s :timeout 100)))))
 
 (defn restart []
   (stop)
