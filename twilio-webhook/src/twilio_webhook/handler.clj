@@ -5,20 +5,12 @@
     [clojure.walk :refer [keywordize-keys]]
     [ring.util.codec :refer [form-decode]]
     [taoensso.timbre :as timbre :refer [info]]
-    [twilio-webhook.lex :refer [lex text-request sms]])
+    [twilio-webhook.lex :refer [lex text-request sms]]
+    [twilio-webhook.twilio :refer [create-sms]])
   (:import (java.io InputStream OutputStream)
-           (com.amazonaws.services.lambda.runtime Context)
-           (com.twilio.twiml Body Message$Builder MessagingResponse$Builder))
+           (com.amazonaws.services.lambda.runtime Context))
   (:gen-class
     :methods [^:static [handler [java.io.InputStream java.io.OutputStream com.amazonaws.services.lambda.runtime.Context] void]]))
-
-(defn ->twiml
-  [message]
-  (-> (MessagingResponse$Builder.)
-      (.message (-> (Message$Builder.)
-                    (.body (Body. message))
-                    .build))
-      .build))
 
 (defn -handler
   [^InputStream input-stream ^OutputStream output-stream ^Context context]
@@ -40,5 +32,5 @@
     (generate-stream {:isBase64Encoded false
                       :statusCode      200
                       :headers         {:Content-Type "application/xml"}
-                      :body            (.toXml (->twiml "twix!"))}
+                      :body            (create-sms "twix!")}
                      writer)))
