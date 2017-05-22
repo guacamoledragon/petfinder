@@ -1,11 +1,17 @@
 (ns twilio-webhook.twilio
-  (:import (com.twilio.twiml Body Message$Builder MessagingResponse$Builder)))
+  (:require [taoensso.timbre :refer [error]])
+  (:import (com.twilio.twiml Body Message$Builder MessagingResponse$Builder TwiMLException)))
 
 (defn create-sms
   [body]
-  (-> (MessagingResponse$Builder.)
-      (.message (-> (Message$Builder.)
-                    (.body (Body. body))
-                    .build))
-      .build
-      .toXml))
+  (try
+    (-> (MessagingResponse$Builder.)
+        (.message (-> (Message$Builder.)
+                      (.body (Body. body))
+                      .build))
+        .build
+        .toXml)
+    (catch TwiMLException ex
+      (do
+        (error ex "Failed to create TwiML")
+        "EOF"))))
