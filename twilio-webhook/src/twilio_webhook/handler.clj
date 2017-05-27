@@ -1,12 +1,12 @@
 (ns twilio-webhook.handler
-  (:require [cheshire.core :refer [generate-stream parse-stream]]
+  (:require [cheshire.core :as cheshire]
             [clojure.java.io :as io]
-            [clojure.walk :refer [keywordize-keys]]
-            [ring.util.codec :refer [form-decode]]
-            [taoensso.timbre :as timbre :refer [info]]
+            [clojure.string :as str]
+            [clojure.walk :as walk]
+            [ring.util.codec :as codec]
+            [taoensso.timbre :as timbre]
             [twilio-webhook.lex :as lex]
-            [twilio-webhook.twilio :as twilio]
-            [clojure.string :as str])
+            [twilio-webhook.twilio :as twilio])
   (:import (java.io InputStream OutputStream)
            (com.amazonaws.services.lambda.runtime Context))
   (:gen-class
@@ -14,28 +14,28 @@
 
 (defn -handler
   [^InputStream input-stream ^OutputStream output-stream ^Context context]
-  (info "Executing function:" (.getFunctionName context))
+  (timbre/info "Executing function:" (.getFunctionName context))
 
   (with-open [output output-stream
-              input input-stream
+              input  input-stream
               writer (io/writer output)
               reader (io/reader input)]
     (let [request (-> reader
-                      (parse-stream true)
+                      (cheshire/parse-stream true)
                       :body
-                      form-decode
-                      keywordize-keys)
+                      codec/form-decode
+                      walk/keywordize-keys)
           message (:Body request)
           from (str/replace (:From request) #"\+" "")]
 
-      (info "Incoming message from:" from message)
+      (timbre/info "Incoming message from:" from message)
 
-      (generate-stream {:isBase64Encoded false
-                        :statusCode      200
-                        :headers         {:Content-Type "application/xml"}
-                        :body            (twilio/create-sms
-                                           (.getMessage (lex/send-text-request from message)))}
-                       writer))))
+      (cheshire/generate-stream {:isBase64Encoded false
+                                 :statusCode      200
+                                 :headers         {:Content-Type "application/xml"}
+                                 :body            (twilio/create-sms
+                                                    (.getMessage (lex/send-text-request from message)))}
+                                writer))))
 
 (comment
   (DONE isolate the behaviour that is needed to proxy SMS to Lex)
