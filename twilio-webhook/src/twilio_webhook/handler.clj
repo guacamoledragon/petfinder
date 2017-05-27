@@ -42,5 +42,7 @@
   (DONE move all http-server code to dev)
   (DONE create AWS Service Proxy Lambda handler)
 
-  (date "2017-05-22T00:03:22.331Z")
-  (TODO determine when an MMS is received, and save to a bucket))
+  (date "2017-05-22T00:03:22.331Z"))
+  ;TODO use clj-lambda-utils plugin to update lambda
+  ;TODO determine when an MMS is received, and save to a bucket)
+
