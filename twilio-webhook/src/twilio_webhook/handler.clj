@@ -20,15 +20,18 @@
               input  input-stream
               writer (io/writer output)
               reader (io/reader input)]
-    (let [request (-> reader
-                      (cheshire/parse-stream true)
-                      :body
-                      codec/form-decode
-                      walk/keywordize-keys)
-          message (:Body request)
-          from (str/replace (:From request) #"\+" "")]
+    (let [request        (cheshire/parse-stream reader true)
+          twilio-request (-> (get request :body)
+                             codec/form-decode
+                             walk/keywordize-keys)
+          message        (:Body twilio-request)
+          from           (str/replace (:From twilio-request) #"\+" "")]
 
       (timbre/info "Incoming message from:" from message)
+
+      (comment
+        "Body can be empty if NumMedia != 0."
+        "If NumMedia != 0, then all media files should be downloaded and uploaded to s3-bucket to mms/<from>/<date>.png")
 
       (cheshire/generate-stream {:isBase64Encoded false
                                  :statusCode      200
@@ -38,11 +41,12 @@
                                 writer))))
 
 (comment
+  ; Micro-level changelog
   (DONE isolate the behaviour that is needed to proxy SMS to Lex)
   (DONE move all http-server code to dev)
   (DONE create AWS Service Proxy Lambda handler)
+  (date "2017-05-22T00:03:22.331Z")
 
-  (date "2017-05-22T00:03:22.331Z"))
-  ;TODO use clj-lambda-utils plugin to update lambda
+  (DONE use clj-lambda-utils plugin to update lambda))
   ;TODO determine when an MMS is received, and save to a bucket)
 
