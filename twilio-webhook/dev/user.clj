@@ -18,7 +18,8 @@
   (stop)
   (refresh :after 'user/start))
 
-(def sample-input-stream
+(defn create-sample-input-stream
+  []
   (io/input-stream "resources/api-gateway-proxy.json"))
 
 (def dummy-context
@@ -28,7 +29,7 @@
 
 (defn test-handler
   []
-  (with-open [input sample-input-stream
+  (with-open [input (create-sample-input-stream)
               output (ByteArrayOutputStream.)]
     (webhook/-handler input output dummy-context)
     (-> output
