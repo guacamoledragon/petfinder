@@ -1,12 +1,11 @@
 (ns twilio-webhook.handler
   (:require [cheshire.core :as cheshire]
             [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.walk :as walk]
             [ring.util.codec :as codec]
             [taoensso.timbre :as timbre]
             [twilio-webhook.lex :as lex]
-            [twilio-webhook.twilio :as twilio])
+            [twilio-webhook.twilio :as twilio]
+            [clojure.string :as str])
   (:import (java.io InputStream OutputStream)
            (com.amazonaws.services.lambda.runtime Context))
   (:gen-class
@@ -23,22 +22,27 @@
     (let [request        (cheshire/parse-stream reader true)
           twilio-request (-> (get request :body)
                              codec/form-decode
-                             walk/keywordize-keys)
-          message        (:Body twilio-request)
-          from           (str/replace (:From twilio-request) #"\+" "")]
+                             twilio/sanitize)
+          message        (:body twilio-request)
+          media-count    (:num-media twilio-request)
+          from           (str/replace (:from twilio-request) #"\+" "")]
 
       (timbre/info "Incoming message from:" from message)
+
+      (when (pos? media-count) ; I would like to be able to collect the number of media items but this will do for now
+        (timbre/info "Sending MMS to S3"))
 
       (comment
         "Body can be empty if NumMedia != 0."
         "If NumMedia != 0, then all media files should be downloaded and uploaded to s3-bucket to mms/<from>/<date>.png")
-
-      (cheshire/generate-stream {:isBase64Encoded false
-                                 :statusCode      200
-                                 :headers         {:Content-Type "application/xml"}
-                                 :body            (twilio/create-sms
-                                                    (.getMessage (lex/send-text-request from message)))}
-                                writer))))
+      (let [response    {:isBase64Encoded false
+                         :statusCode      200
+                         :headers         {:Content-Type "application/xml"}}
+            text-result (lex/send-text-request from message)
+            message     (str (if (pos? media-count) "Thanks for the picture!\n")
+                             (if (some? text-result) (.getMessage text-result)))]
+        (cheshire/generate-stream (assoc response :body (twilio/create-sms message))
+                                  writer)))))
 
 (comment
   ; Micro-level changelog
