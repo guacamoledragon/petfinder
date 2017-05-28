@@ -2,7 +2,9 @@
   :description "A Twilio Webhook that interacts with Lex."
   :url "https://github.com/guacamoledragon/petfinder"
   :min-lein-version "2.0.0"
-  :dependencies [[cheshire "5.7.1"]
+  :dependencies [[amazonica "0.3.101"]
+                 [camel-snake-kebab "0.4.0"]
+                 [cheshire "5.7.1"]
                  [com.amazonaws/aws-java-sdk-lex "1.11.132"]
                  [com.amazonaws/aws-java-sdk-lambda "1.11.132"]
                  [com.amazonaws/aws-lambda-java-core "1.1.0"]
