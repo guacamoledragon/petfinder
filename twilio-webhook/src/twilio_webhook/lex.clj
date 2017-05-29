@@ -22,9 +22,10 @@
 
 (defn ^PostTextResult send-text-request
   [from input-text]
-  (let [lex-client (.build (lex-builder))
-        request (post-text-request {:user-id from
-                                    :bot-name bot-name
-                                    :bot-alias bot-alias
-                                    :input-text input-text})]
-    (.postText lex-client request)))
+  (when-some [text (not-empty input-text)]
+    (let [lex-client (.build (lex-builder))
+          request (post-text-request {:user-id from
+                                      :bot-name bot-name
+                                      :bot-alias bot-alias
+                                      :input-text text})]
+      (.postText lex-client request))))
