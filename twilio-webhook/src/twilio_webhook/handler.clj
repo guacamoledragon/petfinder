@@ -3,8 +3,9 @@
             [clojure.java.io :as io]
             [ring.util.codec :as codec]
             [taoensso.timbre :as timbre]
-            [twilio-webhook.lex :as lex]
-            [twilio-webhook.twilio :as twilio]
+            [twilio-webhook.lex :as webhook.lex]
+            [twilio-webhook.s3 :as webhook.s3]
+            [twilio-webhook.twilio :as webhook.twilio]
             [clojure.string :as str])
   (:import (java.io InputStream OutputStream)
            (com.amazonaws.services.lambda.runtime Context))
@@ -22,27 +23,25 @@
     (let [request        (cheshire/parse-stream reader true)
           twilio-request (-> (get request :body)
                              codec/form-decode
-                             twilio/sanitize)
+                             webhook.twilio/sanitize)
           message        (:body twilio-request)
           media-count    (:num-media twilio-request)
           from           (str/replace (:from twilio-request) #"\+" "")]
 
       (timbre/info "Incoming message from:" from message)
 
-      (when (pos? media-count) ; I would like to be able to collect the number of media items but this will do for now
-        (timbre/info "Sending MMS to S3"))
+      (when (pos? media-count)
+        (timbre/info "Found MMS from: " from)
+        (webhook.s3/send-mms-s3 from (:media-url-0 twilio-request)))
 
-      (comment
-        "Body can be empty if NumMedia != 0."
-        "If NumMedia != 0, then all media files should be downloaded and uploaded to s3-bucket to mms/<from>/<date>.png")
       (let [response    {:isBase64Encoded false
                          :statusCode      200
                          :headers         {:Content-Type "application/xml"}}
-            text-result (lex/send-text-request from message)
+            text-result (webhook.lex/send-text-request from message)
             message     (str (if (pos? media-count) "Thanks for the picture!\n")
-                             (if (some? text-result) (.getMessage text-result)))]
-        (cheshire/generate-stream (assoc response :body (twilio/create-sms message))
-                                  writer)))))
+                             (if (some? text-result) (.getMessage text-result)))
+            sms         (webhook.twilio/create-sms message)]
+        (cheshire/generate-stream (assoc response :body sms) writer)))))
 
 (comment
   ; Micro-level changelog
@@ -51,6 +50,7 @@
   (DONE create AWS Service Proxy Lambda handler)
   (date "2017-05-22T00:03:22.331Z")
 
-  (DONE use clj-lambda-utils plugin to update lambda))
-  ;TODO determine when an MMS is received, and save to a bucket)
-
+  (DONE use clj-lambda-utils plugin to update lambda)
+  (DONE determine when an MMS is received)
+  (date "2017-05-28T00:11:04.229Z"))
+  ; TODO save to a bucket)
