@@ -1,7 +1,7 @@
 (ns user
   (:require [clojure.java.io :as io]
             [clojure.tools.namespace.repl :refer [refresh]]
-            [org.httpkit.server :as http]
+            [clojure.repl :refer [pst]]
             [ring.middleware.defaults :refer [api-defaults wrap-defaults]]
             [ring.middleware.reload :refer [wrap-reload]]
             [twilio-webhook.handler :as webhook])
@@ -20,7 +20,7 @@
 
 (defn create-sample-input-stream
   []
-  (io/input-stream "resources/api-gateway-proxy.json"))
+  (io/input-stream "dev-resources/api-gateway-proxy.json"))
 
 (def dummy-context
   (reify
