@@ -2,8 +2,6 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.namespace.repl :refer [refresh]]
             [clojure.repl :refer [pst]]
-            [ring.middleware.defaults :refer [api-defaults wrap-defaults]]
-            [ring.middleware.reload :refer [wrap-reload]]
             [twilio-webhook.handler :as webhook])
   (:import (java.io ByteArrayOutputStream)
            (com.amazonaws.services.lambda.runtime Context)))
