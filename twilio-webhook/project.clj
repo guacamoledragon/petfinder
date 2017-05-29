@@ -10,6 +10,7 @@
                  [com.amazonaws/aws-lambda-java-core "1.1.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.twilio.sdk/twilio "7.9.1"]
+                 [http-kit "2.2.0"]
                  [org.clojure/clojure "1.8.0"]
                  [ring/ring-codec "1.0.1"]]
   :plugins [[lein-clj-lambda "0.10.1"]]
