@@ -10,11 +10,17 @@
 (def key-prefix "mms")
 
 
+(defn uuid
+  "Create UUID"
+  []
+  (str (java.util.UUID/randomUUID)))
+
+
 (defn get-filename
   "Extracts the filename from a content disposition string."
   [content-disposition]
-  (when-some [[_ filename] (re-find #"filename=\"(.*)\"" content-disposition)]
-    filename))
+  (when-some [[_ extension] (re-find #"filename=\".*(\..*)\"" content-disposition)]
+    (str (uuid) extension)))
 
 
 (defn download-mms
@@ -35,6 +41,7 @@
           (s3/put-object :bucket-name bucket-name
                          :key key
                          :input-stream input-stream
-                         :metadata {:content-length content-length})))
+                         :metadata {:content-length content-length})
+          filename))
       (timbre/error "Could not retrieve MMS\n"
                     (String. ^bytes (:body mms-response))))))

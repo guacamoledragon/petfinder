@@ -33,4 +33,4 @@
     (catch TwiMLException ex
       (do
         (timbre/error ex "Failed to create TwiML")
-        "EOF"))))
+        "<Response></Response>"))))
