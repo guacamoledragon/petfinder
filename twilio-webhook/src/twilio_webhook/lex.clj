@@ -18,7 +18,8 @@
       (.withUserId user-id)
       (.withBotName bot-name)
       (.withBotAlias bot-alias)
-      (.withInputText input-text)))
+      (.withInputText input-text)
+      (.withSessionAttributes {:from user-id})))
 
 (defn ^PostTextResult send-text-request
   [from input-text]
