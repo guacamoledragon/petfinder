@@ -4,8 +4,8 @@
            (com.amazonaws.auth BasicAWSCredentials AWSCredentialsProvider AWSStaticCredentialsProvider)
            (com.amazonaws.regions Regions)))
 
-(def bot-name "BookTrip")
-(def bot-alias "test")
+(def bot-name "PetFinder")
+(def bot-alias "dev")
 
 (defn lex-builder
   []

@@ -30,16 +30,13 @@
 
       (timbre/info "Incoming message from:" from message)
 
-      (when (pos? media-count)
-        (timbre/info "Found MMS from: " from)
-        (webhook.s3/send-mms-s3 from (:media-url-0 twilio-request)))
-
       (let [response    {:isBase64Encoded false
                          :statusCode      200
                          :headers         {:Content-Type "application/xml"}}
-            text-result (webhook.lex/send-text-request from message)
-            message     (str (if (pos? media-count) "Thanks for the picture!\n")
-                             (if (some? text-result) (.getMessage text-result)))
+            text-result (webhook.lex/send-text-request from (if (pos? media-count)
+                                                              (webhook.s3/send-mms-s3 from (:media-url-0 twilio-request))
+                                                              message))
+            message     (.getMessage text-result)
             sms         (webhook.twilio/create-sms message)]
         (cheshire/generate-stream (assoc response :body sms) writer)))))
 
